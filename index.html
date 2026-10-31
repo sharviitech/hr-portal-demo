@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HR Portal</title>
+<style>
+:root{
+  --brand:#1E4FA3; --brand-ink:#fff; --brand-soft:#EAF0FA; --brand-line:#C9D7EF;
+  --navy:#131C3F; --navy-2:#1d2858;
+  --ink:#1B2430; --ink-2:#4A5565; --ink-3:#7A8494;
+  --line:#E3E7EC; --canvas:#F4F6F8; --surface:#fff;
+  --ok:#1E8A5A; --ok-soft:#E4F4EB; --warn:#A3650E; --warn-soft:#FCF1DE;
+  --bad:#B53A2B; --bad-soft:#FBE8E5; --info:#2D6CDF; --info-soft:#E7EFFC; --muted-soft:#EEF0F3;
+  --side:240px; --r:10px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:var(--canvas)}
+h1,h2,h3{margin:0;font-weight:650}
+a{color:var(--brand);text-decoration:none}
+button,input,select,textarea{font:inherit;color:inherit}
+.hide{display:none!important}
+
+/* layout */
+.app{display:flex;min-height:100vh}
+.side{width:var(--side);background:var(--navy);color:#cfd6ee;display:flex;flex-direction:column;position:fixed;inset:0 auto 0 0;z-index:30;transition:transform .2s}
+.brand{padding:18px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.08)}
+.brand .name{font-weight:650;color:#fff;line-height:1.2;word-break:break-word}
+.logo{width:44px;height:44px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;background:#fff;overflow:hidden}
+.logo img{width:100%;height:100%;object-fit:contain}
+.logo.ph{border:1.5px dashed rgba(255,255,255,.45);background:transparent;color:rgba(255,255,255,.7);font-size:10px;letter-spacing:.08em;font-weight:600}
+.nav{padding:10px 8px;overflow:auto;flex:1}
+.nav a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:#cfd6ee;margin-bottom:2px}
+.nav a:hover{background:var(--navy-2);color:#fff}
+.nav a.on{background:var(--brand);color:#fff}
+.nav .sec{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#8390bd;padding:12px 12px 4px}
+.side .foot{padding:12px 16px;border-top:1px solid rgba(255,255,255,.08);font-size:12px;color:#8f9bc6}
+.main{margin-left:var(--side);flex:1;min-width:0}
+.top{display:flex;align-items:center;gap:12px;padding:14px 24px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+.top h1{font-size:19px}
+.top .sub{color:var(--ink-3)}
+.top .sp{flex:1}
+.burger{display:none;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 10px;cursor:pointer}
+.who{display:flex;align-items:center;gap:10px;text-align:right}
+.who .n{font-weight:600;line-height:1.2}.who .r{font-size:12px;color:var(--ink-3)}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--brand-soft);color:var(--brand);font-weight:650;display:flex;align-items:center;justify-content:center}
+.page{padding:22px 24px;max-width:1240px}
+
+/* components */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);margin-bottom:16px}
+.card>.hd{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.card>.hd h2{font-size:15px}
+.card>.hd .sp{flex:1}
+.card>.bd{padding:16px 18px}
+.card.pad0>.bd{padding:0}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.stat{padding:16px 18px}.stat .k{color:var(--ink-3);font-size:12px;text-transform:uppercase;letter-spacing:.06em}.stat .v{font-size:26px;font-weight:650;margin-top:2px}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 13px;cursor:pointer;font-weight:550}
+.btn:hover{border-color:var(--brand-line);background:var(--brand-soft)}
+.btn.pri{background:var(--brand);color:#fff;border-color:var(--brand)}.btn.pri:hover{filter:brightness(1.08)}
+.btn.ok{background:var(--ok);color:#fff;border-color:var(--ok)}
+.btn.bad{color:var(--bad);border-color:#efc4be}.btn.bad:hover{background:var(--bad-soft)}
+.btn.sm{padding:4px 9px;font-size:13px}
+.btn[disabled]{opacity:.55;cursor:wait}
+.tag{display:inline-block;padding:1px 9px;border-radius:99px;font-size:12px;font-weight:600;background:var(--muted-soft);color:var(--ink-2)}
+.tag.ok{background:var(--ok-soft);color:var(--ok)}.tag.warn{background:var(--warn-soft);color:var(--warn)}.tag.bad{background:var(--bad-soft);color:var(--bad)}.tag.info{background:var(--info-soft);color:var(--info)}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);background:#fafbfc;font-weight:600;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+tr.click{cursor:pointer}tr.click:hover td{background:var(--brand-soft)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.scroll{overflow:auto}
+.empty{padding:28px;text-align:center;color:var(--ink-3)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px;flex-wrap:wrap}
+.tabs a{padding:9px 14px;border-bottom:2px solid transparent;color:var(--ink-2);font-weight:550;cursor:pointer}
+.tabs a.on{color:var(--brand);border-color:var(--brand)}
+.muted{color:var(--ink-3)}.small{font-size:12.5px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.sp{flex:1}
+.note{background:var(--info-soft);border:1px solid #cfdcf7;color:#274b92;border-radius:8px;padding:10px 14px;margin-bottom:14px}
+.note.warn{background:var(--warn-soft);border-color:#f0dcb0;color:var(--warn)}
+
+/* forms */
+.form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 16px}
+.form .full{grid-column:1/-1}
+.form h3{grid-column:1/-1;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);padding-top:10px;border-top:1px solid var(--line);margin-top:6px}
+.form h3:first-child{border:0;padding-top:0;margin-top:0}
+label.f{display:block}
+label.f>span{display:block;font-size:12.5px;color:var(--ink-2);margin-bottom:4px;font-weight:550}
+label.f>span i{color:var(--bad);font-style:normal}
+input[type=text],input[type=email],input[type=password],input[type=date],input[type=month],input[type=number],input[type=time],input[type=search],select,textarea{width:100%;border:1px solid #cfd5dd;border-radius:8px;padding:8px 10px;background:#fff}
+textarea{min-height:64px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--brand-line);border-color:var(--brand)}
+input.sm{padding:4px 8px;width:90px}
+
+/* modal + toast */
+.ov{position:fixed;inset:0;background:rgba(19,28,63,.45);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto;z-index:60}
+.modal{background:#fff;border-radius:12px;width:100%;max-width:560px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.modal .hd{display:flex;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line)}
+.modal .hd h2{font-size:16px;flex:1}.modal .bd{padding:18px}.modal .ft{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:80;display:flex;flex-direction:column;gap:8px;align-items:center}
+.t{background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:90vw}
+.t.bad{background:var(--bad)}.t.ok{background:var(--ok)}
+
+/* auth */
+.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(160deg,var(--navy),#0b1130)}
+.auth .box{background:#fff;border-radius:14px;padding:28px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.auth .logo{margin:0 auto 12px;width:64px;height:64px;border:1.5px dashed #b9c2d6;background:#fff;color:#8791a8}
+.auth .logo.ph{border:1.5px dashed #b9c2d6;color:#8791a8}
+.auth h1{text-align:center;font-size:20px}.auth .sub{text-align:center;color:var(--ink-3);margin:2px 0 18px}
+.auth label.f{margin-bottom:12px}
+.auth .btn{width:100%;justify-content:center;padding:10px}
+.auth .links{display:flex;justify-content:space-between;margin-top:14px;font-size:13px}
+.kv{display:grid;grid-template-columns:150px 1fr;gap:6px 14px}.kv dt{color:var(--ink-3)}.kv dd{margin:0}
+.bar{height:8px;border-radius:99px;background:var(--muted-soft);overflow:hidden}.bar>i{display:block;height:100%;background:var(--brand)}
+
+@media(max-width:900px){
+  .side{transform:translateX(-100%)}.side.open{transform:none}
+  .main{margin-left:0}.burger{display:block}
+  .g3,.g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .form{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .page{padding:16px}.top{padding:12px 16px}.who .n,.who .r{display:none}
+}
+@media(max-width:560px){.g2,.g3,.g4,.form{grid-template-columns:1fr}.kv{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast"></div>
+<noscript>Please enable JavaScript to use the HR Portal.</noscript>
+
+<!-- ============ SETUP: paste your Supabase values here (Project Settings -> API) ============ -->
+<script>
+const CONFIG = {
+  SUPABASE_URL: 'https://YOUR-PROJECT-ID.supabase.co',
+  SUPABASE_ANON_KEY: 'YOUR-ANON-PUBLIC-KEY'   // the public "anon" key ONLY. Never paste the service_role key here.
+};
+</script>
+<!-- ======================================================================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script>
+'use strict';
+/* ===== helpers ===== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const num = v => { const n = parseFloat(v); return isFinite(n) ? n : 0; };
+const r2 = n => Math.round((n + Number.EPSILON) * 100) / 100;
+const inr = n => '₹' + Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const pd = d => d ? new Date(String(d).length <= 10 ? d + 'T00:00:00' : d) : null;
+const fdate = d => d ? pd(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+const ftime = t => t ? new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: TZ() }) : '—';
+const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const TZ = () => (typeof S !== 'undefined' && S.st && S.st.timezone) || undefined;
+const todayISO = () => { try { return new Date().toLocaleDateString('en-CA', { timeZone: TZ() }); } catch (_) { return iso(new Date()); } };
+const monthLabel = m => new Date(String(m).slice(0, 7) + '-01T00:00:00').toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+const initials = n => (n || '?').split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); }));
+const nn = v => (v === '' || v == null) ? null : v;
+const prevMonth = () => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - 1); return iso(d).slice(0, 7); };
+const nextMonthStart = ym => { const [y, m] = ym.split('-').map(Number); return iso(new Date(y, m, 1)); };
+const mask = a => a ? '•••• ' + String(a).slice(-4) : '—';
+const ROLE_LABEL = { admin: 'Admin (HR)', manager: 'Manager', employee: 'Employee' };
+const TYPE_LABEL = { full_time: 'Full-time', part_time: 'Part-time', contract: 'Contract', intern: 'Intern' };
+const DOC_TYPES = ['ID proof (Aadhaar)', 'PAN card', 'Address proof', 'Passport photo', 'Educational certificate', 'Experience letter', 'Offer letter', 'Appointment letter', 'Bank proof', 'Other'];
+
+function words(n) {
+  n = Math.round(n); if (n === 0) return 'Zero';
+  const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+  const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+  const two = x => x < 20 ? a[x] : b[Math.floor(x / 10)] + (x % 10 ? ' ' + a[x % 10] : '');
+  const three = x => (x >= 100 ? a[Math.floor(x / 100)] + ' Hundred' + (x % 100 ? ' ' : '') : '') + (x % 100 ? two(x % 100) : '');
+  const out = []; const cr = Math.floor(n / 1e7); n %= 1e7; const lk = Math.floor(n / 1e5); n %= 1e5; const th = Math.floor(n / 1e3); n %= 1e3;
+  if (cr) out.push(three(cr) + ' Crore'); if (lk) out.push(two(lk) + ' Lakh'); if (th) out.push(two(th) + ' Thousand'); if (n) out.push(three(n));
+  return out.join(' ');
+}
+function csv(rows) { return rows.map(r => r.map(v => { v = v == null ? '' : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(',')).join('\r\n'); }
+function download(name, content, type = 'text/csv') {
+  const b = new Blob([type === 'text/csv' ? '﻿' + content : content], { type: type + ';charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+}
+function toast(msg, kind = '') { const t = document.createElement('div'); t.className = 't ' + kind; t.textContent = msg; $('#toast').appendChild(t); setTimeout(() => t.remove(), kind === 'bad' ? 6500 : 3000); }
+function modal(title, body) {
+  closeModal(); const o = document.createElement('div'); o.className = 'ov'; o.id = 'modal';
+  o.innerHTML = `<div class="modal"><div class="hd"><h2>${esc(title)}</h2><button class="btn sm" type="button" data-act="closeModal">✕</button></div><div class="bd">${body}</div></div>`;
+  document.body.appendChild(o);
+}
+function closeModal() { $('#modal')?.remove(); }
+const must = async p => { const { data, error } = await p; if (error) throw error; return data; };
+const cnt = async q => { const { count, error } = await q; if (error) throw error; return count || 0; };
+function formObj(f) { const o = {}; new FormData(f).forEach((v, k) => { o[k] = typeof v === 'string' ? v.trim() : v; }); return o; }
+
+function fld(name, label, type = 'text', o = {}, val = '') {
+  const req = o.req ? ' required' : '', star = o.req ? ' <i>*</i>' : '', cls = 'f' + (o.full ? ' full' : '');
+  let inp;
+  if (type === 'select') inp = `<select name="${name}"${req}>${(o.opts || []).map(([v, l]) => `<option value="${esc(v)}"${String(val ?? '') === String(v) ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
+  else if (type === 'textarea') inp = `<textarea name="${name}"${req}>${esc(val)}</textarea>`;
+  else inp = `<input type="${type}" name="${name}" value="${esc(val)}"${req}${o.ph ? ` placeholder="${esc(o.ph)}"` : ''}${o.step ? ` step="${o.step}"` : ''}${o.min != null ? ` min="${o.min}"` : ''}${o.max != null ? ` max="${o.max}"` : ''}>`;
+  return `<label class="${cls}"><span>${esc(label)}${star}</span>${inp}</label>`;
+}
+const logoHtml = (st, cls = '') => st?.logo_data ? `<div class="logo ${cls}"><img alt="logo" src="${esc(st.logo_data)}"></div>` : `<div class="logo ph ${cls}">LOGO</div>`;
+
+/* ===== state ===== */
+const S = { sb: null, user: null, me: null, st: null, dir: [], lt: [], hol: [], ui: {}, tok: 0, recovery: false, brand: null };
+const ACT = {}, FORM = {}, CHG = {}, PAGES = {};
+const isAdmin = () => S.me?.role === 'admin';
+const isMgr = () => S.me?.role === 'manager' || isAdmin();
+const nameOf = id => S.dir.find(e => e.id === id)?.full_name || '—';
+const codeOf = id => S.dir.find(e => e.id === id)?.emp_code || '';
+
+async function loadBase() {
+  const [st, dir, lt, hol] = await Promise.all([
+    must(S.sb.from('settings').select('*').eq('id', 1).single()),
+    must(S.sb.from('employee_directory').select('*').order('emp_code')),
+    must(S.sb.from('leave_types').select('*').eq('active', true).order('name')),
+    must(S.sb.from('holidays').select('*').order('date'))]);
+  Object.assign(S, { st, dir, lt, hol });
+}
+async function reloadDir() { S.dir = await must(S.sb.from('employee_directory').select('*').order('emp_code')); }
+async function loadMe() {
+  const { data: { user } } = await S.sb.auth.getUser();
+  S.user = user || null; S.me = null;
+  if (!user) return;
+  const me = await must(S.sb.from('employees').select('*').eq('user_id', user.id).maybeSingle());
+  if (me && me.status === 'active') { S.me = me; await loadBase(); }
+}
+
+/* ===== auth screens ===== */
+function authShell(inner) {
+  const b = S.brand || { company_name: 'HR Portal', logo_data: null };
+  return `<div class="auth"><div class="box">${b.logo_data ? `<div class="logo" style="border-style:solid;border-color:#e3e7ec"><img alt="logo" src="${esc(b.logo_data)}"></div>` : '<div class="logo ph">LOGO</div>'}
+    <h1>${esc(b.company_name)}</h1><div class="sub">HR Portal</div>${inner}</div></div>`;
+}
+function authView(mode) {
+  if (mode === 'activate') return authShell(`<form data-form="activate">
+      <div class="note">First time here? Use the work email HR registered, and choose a password.</div>
+      ${fld('email', 'Work email', 'email', { req: 1 })}${fld('password', 'Choose a password (min 8 characters)', 'password', { req: 1 })}${fld('password2', 'Repeat password', 'password', { req: 1 })}
+      <button class="btn pri" type="submit">Activate account</button></form>
+      <div class="links"><a href="#" data-act="authMode" data-m="login">← Back to login</a></div>`);
+  if (mode === 'forgot') return authShell(`<form data-form="forgot">${fld('email', 'Work email', 'email', { req: 1 })}
+      <button class="btn pri" type="submit">Send reset link</button></form>
+      <div class="links"><a href="#" data-act="authMode" data-m="login">← Back to login</a></div>`);
+  if (mode === 'recovery') return authShell(`<form data-form="newpass"><div class="note">Choose a new password.</div>
+      ${fld('password', 'New password (min 8 characters)', 'password', { req: 1 })}${fld('password2', 'Repeat password', 'password', { req: 1 })}
+      <button class="btn pri" type="submit">Save password</button></form>`);
+  return authShell(`<form data-form="login">${fld('email', 'Work email', 'email', { req: 1 })}${fld('password', 'Password', 'password', { req: 1 })}
+      <button class="btn pri" type="submit">Log in</button></form>
+      <div class="links"><a href="#" data-act="authMode" data-m="activate">Activate account</a><a href="#" data-act="authMode" data-m="forgot">Forgot password?</a></div>`);
+}
+const setupScreen = () => `<div class="auth"><div class="box"><h1>Setup needed</h1><div class="sub">Connect the database</div>
+  <p>Open <b>index.html</b> and put your Supabase <b>Project URL</b> and <b>anon public key</b> in the CONFIG block at the top, then reload.</p></div></div>`;
+const noProfileView = () => authShell(`<div class="note warn">You are signed in as <b>${esc(S.user?.email)}</b>, but there is no active employee profile for this email. Please contact HR.</div>
+  <button class="btn" data-act="logout">Sign out</button>`);
+
+ACT.authMode = t => { S.ui.authMode = t.dataset.m; render(); };
+ACT.logout = async () => { await S.sb.auth.signOut(); S.user = null; S.me = null; S.ui = {}; location.hash = '#/'; render(); };
+ACT.closeModal = closeModal;
+ACT.menu = () => $('.side')?.classList.toggle('open');
+
+async function afterLogin() { await loadMe(); S.ui.authMode = 'login'; location.hash = '#/'; render(); }
+FORM.login = async f => {
+  const d = formObj(f);
+  const { error } = await S.sb.auth.signInWithPassword({ email: d.email, password: d.password });
+  if (error) throw new Error('Wrong email or password, or the email is not confirmed yet.');
+  await afterLogin();
+};
+FORM.activate = async f => {
+  const d = formObj(f);
+  if (d.password.length < 8) throw new Error('Password must be at least 8 characters');
+  if (d.password !== d.password2) throw new Error('Passwords do not match');
+  const { data, error } = await S.sb.auth.signUp({ email: d.email, password: d.password, options: { emailRedirectTo: location.origin + location.pathname } });
+  if (error) throw new Error('Could not activate. Check that HR has added this exact work email, or try logging in if you already activated.');
+  if (data.session) { toast('Account activated', 'ok'); await afterLogin(); }
+  else { toast('Check your email and click the confirmation link, then log in.', 'ok'); S.ui.authMode = 'login'; render(); }
+};
+FORM.forgot = async f => {
+  const d = formObj(f);
+  const { error } = await S.sb.auth.resetPasswordForEmail(d.email, { redirectTo: location.origin + location.pathname });
+  if (error) throw error;
+  toast('If this email is registered, a reset link is on its way.', 'ok'); S.ui.authMode = 'login'; render();
+};
+FORM.newpass = async f => {
+  const d = formObj(f);
+  if (d.password.length < 8) throw new Error('Password must be at least 8 characters');
+  if (d.password !== d.password2) throw new Error('Passwords do not match');
+  const { error } = await S.sb.auth.updateUser({ password: d.password }); if (error) throw error;
+  S.recovery = false; toast('Password updated', 'ok'); await afterLogin();
+};
+
+/* ===== layout + routing ===== */
+const NAV = [
+  ['home', 'Home'], ['me', 'My profile'], ['documents', 'My documents'], ['payslips', 'My payslips'], ['leave', 'Leave'], ['attendance', 'Attendance'], ['holidays', 'Holidays'],
+  ['#', 'HR admin', 'admin'], ['employees', 'Employees', 'admin'], ['payroll', 'Payroll', 'admin'], ['audit', 'Audit log', 'admin'], ['settings', 'Settings', 'admin']];
+function layout(title, active) {
+  const nav = NAV.filter(n => n[2] !== 'admin' || isAdmin()).map(n => n[0] === '#' ? `<div class="sec">${n[1]}</div>` : `<a href="#/${n[0] === 'home' ? '' : n[0]}" class="${n[0] === active ? 'on' : ''}">${n[1]}</a>`).join('');
+  return `<div class="app"><aside class="side"><div class="brand">${logoHtml(S.st)}<div class="name">${esc(S.st.company_name)}</div></div>
+    <nav class="nav">${nav}</nav><div class="foot">${esc(S.user.email)}</div></aside>
+    <div class="main"><div class="top"><button class="btn burger" data-act="menu">☰</button><h1 id="ttl">${esc(title)}</h1><span class="sp"></span>
+      <div class="who"><div><div class="n">${esc(S.me.full_name)}</div><div class="r">${ROLE_LABEL[S.me.role]}</div></div><div class="avatar">${esc(initials(S.me.full_name))}</div></div>
+      <button class="btn sm" data-act="logout">Sign out</button></div>
+    <div class="page" id="content"></div></div></div>`;
+}
+function route() {
+  let h = location.hash.replace(/^#\/?/, '');
+  if (/access_token|type=recovery|error_description/.test(h)) h = '';
+  const [name, ...rest] = h.split('/'); return { name: name || 'home', arg: rest.join('/') };
+}
+async function render() {
+  const app = $('#app'); const tok = ++S.tok;
+  if (!S.sb) { app.innerHTML = setupScreen(); return; }
+  if (S.recovery) { app.innerHTML = authView('recovery'); return; }
+  if (!S.user) {
+    if (!S.brand) { try { const b = await S.sb.rpc('branding'); S.brand = (b.data && b.data[0]) || null; } catch (_) { } }
+    if (tok !== S.tok) return; app.innerHTML = authView(S.ui.authMode || 'login'); return;
+  }
+  if (!S.me) { app.innerHTML = noProfileView(); return; }
+  const { name, arg } = route(); const def = PAGES[name] || PAGES.home;
+  if ((def.admin && !isAdmin()) || (def.mgr && !isMgr())) { location.hash = '#/'; return; }
+  app.innerHTML = layout(def.title, PAGES[name] ? name : 'home');
+  $('#content').innerHTML = '<div class="empty">Loading…</div>';
+  try {
+    const out = await def.fn(arg); if (tok !== S.tok) return;
+    $('#content').innerHTML = out.html; if (out.title) $('#ttl').textContent = out.title; if (out.after) out.after();
+  } catch (e) { if (tok === S.tok) $('#content').innerHTML = `<div class="note warn">Something went wrong: ${esc(e.message || e)}</div>`; console.error(e); }
+}
+
+/* ===== event wiring (delegation) ===== */
+async function guard(fn, btn) {
+  if (btn) { if (btn.disabled) return; btn.disabled = true; }
+  try { await fn(); } catch (e) { console.error(e); toast(e.message || String(e), 'bad'); } finally { if (btn) btn.disabled = false; }
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act]'); if (!t) return;
+  if (t.tagName === 'A') e.preventDefault();
+  const f = ACT[t.dataset.act]; if (f) guard(() => f(t, e), t.tagName === 'BUTTON' ? t : null);
+});
+document.addEventListener('click', e => { const r = e.target.closest('tr[data-href]'); if (r && !e.target.closest('a,button,input,select')) location.hash = r.dataset.href; });
+document.addEventListener('submit', e => {
+  const f = e.target.closest('form[data-form]'); if (!f) return; e.preventDefault();
+  const h = FORM[f.dataset.form]; if (h) guard(() => h(f), f.querySelector('button[type=submit]'));
+});
+document.addEventListener('change', e => { const t = e.target.closest('[data-chg]'); if (t && CHG[t.dataset.chg]) guard(() => CHG[t.dataset.chg](t)); });
+document.addEventListener('input', e => {
+  const t = e.target.closest('[data-filter]'); if (!t) return;
+  const q = t.value.toLowerCase(); $$(`#${t.dataset.filter} tr[data-s]`).forEach(r => r.classList.toggle('hide', !!q && !r.dataset.s.includes(q)));
+});
+window.addEventListener('hashchange', () => { if (S.user) render(); });
+
+/* ===== boot ===== */
+async function boot() {
+  const bad = !CONFIG.SUPABASE_URL || CONFIG.SUPABASE_URL.includes('YOUR-') || !CONFIG.SUPABASE_ANON_KEY || CONFIG.SUPABASE_ANON_KEY.includes('YOUR-');
+  if (!bad && window.supabase) S.sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+  if (!S.sb) { render(); return; }
+  S.sb.auth.onAuthStateChange(ev => { if (ev === 'PASSWORD_RECOVERY') { S.recovery = true; render(); } });
+  try { await loadMe(); } catch (e) { console.error(e); toast(e.message, 'bad'); }
+  render();
+}
+
+/* ===== HOME ===== */
+PAGES.home = { title: 'Home', fn: async () => {
+  const today = todayISO(), in30 = iso(new Date(Date.now() + 30 * 864e5)), mm = String(new Date().getMonth() + 1).padStart(2, '0');
+  const q = [
+    must(S.sb.from('attendance').select('*').eq('employee_id', S.me.id).eq('work_date', today).maybeSingle()),
+    must(S.sb.from('documents').select('id,employee_id,doc_type,expiry_date').not('expiry_date', 'is', null).lte('expiry_date', in30).order('expiry_date').limit(6)),
+    cnt(S.sb.from('leave_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending').neq('employee_id', S.me.id))];
+  if (isAdmin()) q.push(cnt(S.sb.from('attendance').select('id', { count: 'exact', head: true }).eq('work_date', today).in('status', ['present', 'wfh', 'half_day'])), cnt(S.sb.from('payslips').select('id', { count: 'exact', head: true }).eq('status', 'draft')));
+  const [att, docs, pend, present, drafts] = await Promise.all(q);
+  const active = S.dir.filter(e => e.status === 'active');
+  const hol = S.hol.filter(h => h.date >= today).slice(0, 4);
+  const bdays = active.filter(e => e.birthday_md && e.birthday_md.startsWith(mm)).sort((a, b) => a.birthday_md.localeCompare(b.birthday_md));
+  const stat = (k, v, href) => `<a class="card stat" href="${href}" style="color:inherit"><div class="k">${k}</div><div class="v">${v}</div></a>`;
+  const hr = new Date().getHours(), greet = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
+  return { html: `
+  <h2 style="margin-bottom:14px;font-size:20px">${greet}, ${esc(S.me.full_name.split(' ')[0])}</h2>
+  ${isAdmin() ? `<div class="grid g4" style="margin-bottom:16px">${stat('Active employees', active.length, '#/employees')}${stat('Present today', present, '#/attendance')}${stat('Leave awaiting approval', pend, '#/leave')}${stat('Draft payslips', drafts, '#/payroll')}</div>`
+    : isMgr() ? `<div class="grid g4" style="margin-bottom:16px">${stat('Team leave to approve', pend, '#/leave')}</div>` : ''}
+  <div class="grid g2">
+    <div class="card"><div class="hd"><h2>Today</h2><span class="sp"></span><span class="muted small">${fdate(today)}</span></div><div class="bd">${attendanceToday(att)}</div></div>
+    <div class="card"><div class="hd"><h2>Upcoming holidays</h2><a class="small" href="#/holidays">All</a></div><div class="bd">
+      ${hol.length ? hol.map(h => `<div class="row" style="justify-content:space-between;padding:4px 0"><span>${esc(h.name)}</span><span class="muted">${fdate(h.date)}</span></div>`).join('') : '<span class="muted">No upcoming holidays added yet.</span>'}</div></div>
+    <div class="card"><div class="hd"><h2>Birthdays this month</h2></div><div class="bd">
+      ${bdays.length ? bdays.map(b => `<div class="row" style="justify-content:space-between;padding:4px 0"><span>${esc(b.full_name)}</span><span class="muted">${b.birthday_md.slice(3)}/${b.birthday_md.slice(0, 2)}</span></div>`).join('') : '<span class="muted">None this month.</span>'}</div></div>
+    <div class="card"><div class="hd"><h2>Documents expiring soon</h2></div><div class="bd">
+      ${docs.length ? docs.map(d => `<div class="row" style="justify-content:space-between;padding:4px 0"><span>${esc(d.doc_type)}${isAdmin() ? ` · <span class="muted">${esc(nameOf(d.employee_id))}</span>` : ''}</span><span class="tag ${d.expiry_date < today ? 'bad' : 'warn'}">${fdate(d.expiry_date)}</span></div>`).join('') : '<span class="muted">Nothing expiring in the next 30 days.</span>'}</div></div>
+  </div>` };
+} };
+
+function attendanceToday(a) {
+  const late = a?.check_in && isLate(a.check_in);
+  return `<div class="row" style="justify-content:space-between;margin-bottom:12px"><div><div class="muted small">Check-in</div><b>${ftime(a?.check_in)}</b> ${late ? '<span class="tag warn">Late</span>' : ''}</div>
+    <div><div class="muted small">Check-out</div><b>${ftime(a?.check_out)}</b></div><div><div class="muted small">Status</div>${a ? statusTag(a.status) : '<span class="tag">Not checked in</span>'}</div></div>
+    <div class="row">${!a?.check_in ? '<button class="btn pri" data-act="checkIn">Check in</button>' : !a.check_out ? '<button class="btn pri" data-act="checkOut">Check out</button>' : '<span class="tag ok">Day complete</span>'}</div>`;
+}
+function isLate(ts) {
+  const [h, m] = (S.st.work_start_time || '09:30').split(':').map(Number);
+  const parts = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: TZ() }).formatToParts(new Date(ts));
+  const hh = +parts.find(x => x.type === 'hour').value % 24, mm = +parts.find(x => x.type === 'minute').value;
+  return hh * 60 + mm > h * 60 + m + (S.st.late_grace_minutes ?? 15);
+}
+const STATUS = { present: ['Present', 'ok'], absent: ['Absent', 'bad'], half_day: ['Half day', 'warn'], wfh: ['Work from home', 'info'], leave: ['On leave', 'info'] };
+const statusTag = s => { const [l, k] = STATUS[s] || [s, '']; return `<span class="tag ${k}">${l}</span>`; };
+ACT.checkIn = async () => { await must(S.sb.rpc('check_in')); toast('Checked in', 'ok'); render(); };
+ACT.checkOut = async () => { await must(S.sb.rpc('check_out')); toast('Checked out', 'ok'); render(); };
+
+/* ===== MY PROFILE ===== */
+PAGES.me = { title: 'My profile', fn: async () => {
+  const e = S.me, mgr = e.manager_id ? nameOf(e.manager_id) : '—';
+  return { html: `<div class="grid g2">
+  <div class="card"><div class="hd"><h2>Job details</h2><span class="sp"></span><span class="muted small">Managed by HR</span></div><div class="bd"><dl class="kv">
+    <dt>Employee ID</dt><dd>${esc(e.emp_code)}</dd><dt>Name</dt><dd>${esc(e.full_name)}</dd><dt>Work email</dt><dd>${esc(e.work_email)}</dd>
+    <dt>Department</dt><dd>${esc(e.department || '—')}</dd><dt>Designation</dt><dd>${esc(e.designation || '—')}</dd><dt>Reports to</dt><dd>${esc(mgr)}</dd>
+    <dt>Employment type</dt><dd>${TYPE_LABEL[e.employment_type]}</dd><dt>Date of joining</dt><dd>${fdate(e.joining_date)}</dd><dt>Date of birth</dt><dd>${fdate(e.dob)}</dd>
+    <dt>PAN</dt><dd>${esc(e.pan || '—')}</dd><dt>UAN</dt><dd>${esc(e.uan || '—')}</dd><dt>PF number</dt><dd>${esc(e.pf_number || '—')}</dd><dt>ESI number</dt><dd>${esc(e.esi_number || '—')}</dd></dl>
+    <p class="muted small" style="margin-bottom:0">To correct any of these, please ask HR.</p></div></div>
+  <div class="card"><div class="hd"><h2>Contact, emergency and bank details</h2></div><div class="bd">
+    <form data-form="myProfile" class="form" style="grid-template-columns:1fr 1fr">
+      ${fld('personal_phone', 'Mobile number', 'text', {}, e.personal_phone)}${fld('personal_email', 'Personal email', 'email', {}, e.personal_email)}
+      ${fld('blood_group', 'Blood group', 'text', {}, e.blood_group)}<span></span>
+      ${fld('address_current', 'Current address', 'textarea', { full: 1 }, e.address_current)}${fld('address_permanent', 'Permanent address', 'textarea', { full: 1 }, e.address_permanent)}
+      <h3>Emergency contact</h3>${fld('emergency_name', 'Name', 'text', {}, e.emergency_name)}${fld('emergency_relation', 'Relationship', 'text', {}, e.emergency_relation)}${fld('emergency_phone', 'Phone', 'text', { full: 1 }, e.emergency_phone)}
+      <h3>Bank account (for salary)</h3>${fld('bank_account_holder', 'Account holder name', 'text', {}, e.bank_account_holder)}${fld('bank_name', 'Bank name', 'text', {}, e.bank_name)}
+      ${fld('bank_account_no', 'Account number', 'text', {}, e.bank_account_no)}${fld('bank_ifsc', 'IFSC code', 'text', {}, e.bank_ifsc)}
+      <div class="full"><button class="btn pri" type="submit">Save changes</button></div></form></div></div></div>` };
+} };
+FORM.myProfile = async f => {
+  const d = formObj(f); const v = k => nn(d[k]);
+  if (v('bank_ifsc') && !/^[A-Za-z]{4}0[A-Za-z0-9]{6}$/.test(d.bank_ifsc)) throw new Error('IFSC code looks wrong (example: SBIN0001234)');
+  await must(S.sb.rpc('update_my_profile', { p_phone: v('personal_phone'), p_email: v('personal_email'), p_addr_cur: v('address_current'), p_addr_perm: v('address_permanent'),
+    p_em_name: v('emergency_name'), p_em_rel: v('emergency_relation'), p_em_phone: v('emergency_phone'), p_bank_holder: v('bank_account_holder'), p_bank_name: v('bank_name'),
+    p_bank_acc: v('bank_account_no'), p_ifsc: v('bank_ifsc'), p_blood: v('blood_group') }));
+  await loadMe(); toast('Profile saved', 'ok'); render();
+};
+
+/* ===== DOCUMENTS (shared by employee + admin views) ===== */
+async function docsCard(empId) {
+  const rows = await must(S.sb.from('documents').select('*').eq('employee_id', empId).order('created_at', { ascending: false }));
+  const today = todayISO();
+  return `<div class="card"><div class="hd"><h2>Upload a document</h2></div><div class="bd">
+    <form data-form="docUpload" class="form"><input type="hidden" name="employee_id" value="${esc(empId)}">
+      ${fld('doc_type', 'Document type', 'select', { opts: DOC_TYPES.map(t => [t, t]) })}${fld('title', 'Title (optional)', 'text', { ph: 'e.g. Aadhaar front and back' })}${fld('expiry_date', 'Expiry date (optional)', 'date')}
+      <label class="f full"><span>File (PDF, JPG or PNG, max 5 MB) <i>*</i></span><input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" required></label>
+      <div class="full"><button class="btn pri" type="submit">Upload</button></div></form></div></div>
+  <div class="card pad0"><div class="hd"><h2>Uploaded documents</h2></div><div class="bd scroll">
+    ${rows.length ? `<table><tr><th>Type</th><th>Title / file</th><th>Expiry</th><th>Uploaded</th><th></th></tr>${rows.map(r => `<tr>
+      <td>${esc(r.doc_type)}</td><td>${esc(r.title || r.file_name)}<div class="muted small">${esc(r.file_name)} · ${(r.file_size / 1024).toFixed(0)} KB</div></td>
+      <td>${r.expiry_date ? `<span class="tag ${r.expiry_date < today ? 'bad' : ''}">${fdate(r.expiry_date)}</span>` : '—'}</td><td>${fdate(r.created_at)}</td>
+      <td class="num"><button class="btn sm" data-act="docOpen" data-path="${esc(r.file_path)}" data-name="${esc(r.file_name)}">Download</button>
+      ${isAdmin() ? ` <button class="btn sm bad" data-act="docDel" data-id="${esc(r.id)}" data-path="${esc(r.file_path)}">Delete</button>` : ''}</td></tr>`).join('')}</table>` : '<div class="empty">No documents uploaded yet.</div>'}</div></div>`;
+}
+PAGES.documents = { title: 'My documents', fn: async () => ({ html: await docsCard(S.me.id) }) };
+FORM.docUpload = async f => {
+  const d = formObj(f), file = d.file;
+  if (!file || !file.size) throw new Error('Please choose a file');
+  if (!['application/pdf', 'image/jpeg', 'image/png'].includes(file.type)) throw new Error('Only PDF, JPG or PNG files are allowed');
+  if (file.size > 5 * 1024 * 1024) throw new Error('This file is larger than 5 MB');
+  const path = `${d.employee_id}/${uuid()}-${file.name.replace(/[^\w.\-]+/g, '_').slice(-80)}`;
+  const up = await S.sb.storage.from('documents').upload(path, file, { contentType: file.type, upsert: false }); if (up.error) throw up.error;
+  const { error } = await S.sb.from('documents').insert({ employee_id: d.employee_id, doc_type: d.doc_type, title: nn(d.title), file_path: path, file_name: file.name, file_size: file.size, mime_type: file.type, expiry_date: nn(d.expiry_date), uploaded_by: S.me.id });
+  if (error) { await S.sb.storage.from('documents').remove([path]); throw error; }
+  toast('Document uploaded', 'ok'); render();
+};
+ACT.docOpen = async t => {
+  const { data, error } = await S.sb.storage.from('documents').download(t.dataset.path); if (error) throw error;
+  const a = document.createElement('a'); a.href = URL.createObjectURL(data); a.download = t.dataset.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+};
+ACT.docDel = async t => {
+  if (!confirm('Delete this document permanently?')) return;
+  const r = await S.sb.storage.from('documents').remove([t.dataset.path]); if (r.error) throw r.error;
+  await must(S.sb.from('documents').delete().eq('id', t.dataset.id)); toast('Document deleted', 'ok'); render();
+};
+
+/* ===== EMPLOYEES (admin) ===== */
+const EMP_FIELDS = [
+  ['Job details', [['emp_code', 'Employee ID', 'text', { req: 1 }], ['full_name', 'Full name', 'text', { req: 1 }], ['work_email', 'Work email (used to log in)', 'email', { req: 1 }],
+    ['role', 'Access level', 'select', { opts: [['employee', 'Employee'], ['manager', 'Manager (approves team leave)'], ['admin', 'Admin (HR)']] }], ['status', 'Status', 'select', { opts: [['active', 'Active'], ['exited', 'Exited']] }], ['manager_id', 'Reports to', 'manager'],
+    ['department', 'Department', 'text'], ['designation', 'Designation', 'text'], ['employment_type', 'Employment type', 'select', { opts: Object.entries(TYPE_LABEL) }],
+    ['joining_date', 'Date of joining', 'date'], ['exit_date', 'Exit date', 'date']]],
+  ['Personal', [['dob', 'Date of birth', 'date'], ['gender', 'Gender', 'select', { opts: [['', '—'], ['Female', 'Female'], ['Male', 'Male'], ['Other', 'Other']] }], ['blood_group', 'Blood group', 'text'],
+    ['personal_phone', 'Mobile number', 'text'], ['personal_email', 'Personal email', 'email'], ['address_current', 'Current address', 'textarea', { full: 1 }], ['address_permanent', 'Permanent address', 'textarea', { full: 1 }]]],
+  ['Emergency contact', [['emergency_name', 'Name', 'text'], ['emergency_relation', 'Relationship', 'text'], ['emergency_phone', 'Phone', 'text']]],
+  ['Statutory', [['pan', 'PAN', 'text', { ph: 'ABCDE1234F' }], ['uan', 'UAN', 'text'], ['pf_number', 'PF number', 'text'], ['esi_number', 'ESI number', 'text']]],
+  ['Bank account', [['bank_account_holder', 'Account holder name', 'text'], ['bank_name', 'Bank name', 'text'], ['bank_account_no', 'Account number', 'text'], ['bank_ifsc', 'IFSC code', 'text']]]];
+const EMP_COLS = EMP_FIELDS.flatMap(g => g[1].map(f => f[0]));
+
+PAGES.employees = { title: 'Employees', admin: 1, fn: async () => {
+  const rows = await must(S.sb.from('employees').select('*').order('emp_code'));
+  S.ui.empRows = rows;
+  return { html: `<div class="card pad0"><div class="hd"><h2>${rows.filter(r => r.status === 'active').length} active · ${rows.length} total</h2><span class="sp"></span>
+    <input type="search" placeholder="Search name, ID, department…" data-filter="empTbl" style="width:260px">
+    <button class="btn" data-act="empCsv">Export CSV</button><a class="btn pri" href="#/employee/new">+ Add employee</a></div>
+    <div class="bd scroll"><table id="empTbl"><tr><th>ID</th><th>Name</th><th>Department</th><th>Designation</th><th>Joined</th><th>Access</th><th>Status</th></tr>
+    ${rows.map(r => `<tr class="click" data-href="#/employee/${r.id}" data-s="${esc((r.emp_code + ' ' + r.full_name + ' ' + (r.department || '') + ' ' + (r.designation || '') + ' ' + r.work_email).toLowerCase())}">
+      <td>${esc(r.emp_code)}</td><td><b>${esc(r.full_name)}</b><div class="muted small">${esc(r.work_email)}</div></td><td>${esc(r.department || '—')}</td><td>${esc(r.designation || '—')}</td>
+      <td>${fdate(r.joining_date)}</td><td>${ROLE_LABEL[r.role]}</td><td><span class="tag ${r.status === 'active' ? 'ok' : ''}">${r.status === 'active' ? 'Active' : 'Exited'}</span> ${r.user_id ? '' : '<span class="tag warn" title="Has not activated login yet">Not activated</span>'}</td></tr>`).join('')}</table></div></div>` };
+} };
+ACT.empCsv = async () => {
+  const rows = S.ui.empRows || await must(S.sb.from('employees').select('*').order('emp_code'));
+  const cols = ['emp_code', 'full_name', 'work_email', 'role', 'status', 'department', 'designation', 'employment_type', 'joining_date', 'exit_date', 'dob', 'gender', 'personal_phone', 'personal_email', 'pan', 'uan', 'pf_number', 'esi_number', 'bank_name', 'bank_account_no', 'bank_ifsc'];
+  download(`employees-${todayISO()}.csv`, csv([cols, ...rows.map(r => cols.map(c => r[c]))]));
+};
+
+PAGES.employee = { title: 'Employee', admin: 1, fn: async arg => {
+  const isNew = arg === 'new'; let e = {};
+  if (!isNew) { e = await must(S.sb.from('employees').select('*').eq('id', arg).maybeSingle()); if (!e) return { html: '<div class="note warn">Employee not found.</div>' }; }
+  else {
+    const mx = (S.dir.map(d => parseInt((d.emp_code.match(/\d+$/) || [0])[0], 10)).filter(Boolean).sort((a, b) => b - a)[0] || 0) + 1;
+    e = { emp_code: 'EMP' + String(mx).padStart(3, '0'), role: 'employee', status: 'active', employment_type: 'full_time', joining_date: todayISO() };
+  }
+  const tab = isNew ? 'profile' : (S.ui.empTab || 'profile');
+  const tabs = isNew ? '' : `<div class="tabs">${[['profile', 'Profile'], ['docs', 'Documents'], ['salary', 'Salary'], ['slips', 'Payslips']].map(([k, l]) => `<a class="${k === tab ? 'on' : ''}" data-act="empTab" data-t="${k}">${l}</a>`).join('')}</div>`;
+  let body = '';
+  if (tab === 'profile') {
+    const mgrOpts = [['', '— none —'], ...S.dir.filter(d => d.status === 'active' && d.id !== e.id).map(d => [d.id, `${d.full_name} (${d.emp_code})`])];
+    body = `<div class="card"><div class="bd"><form data-form="empSave" class="form"><input type="hidden" name="_id" value="${esc(e.id || '')}">
+      ${EMP_FIELDS.map(([g, fs]) => `<h3>${g}</h3>${fs.map(([n, l, t, o]) => t === 'manager' ? fld(n, l, 'select', { opts: mgrOpts }, e[n] || '') : fld(n, l, t, o || {}, e[n] ?? '')).join('')}`).join('')}
+      <div class="full row" style="margin-top:8px"><button class="btn pri" type="submit">${isNew ? 'Add employee' : 'Save changes'}</button><a class="btn" href="#/employees">Cancel</a></div></form>
+      ${isNew ? '<p class="muted small">After saving, ask the employee to open the portal, click <b>Activate account</b> and use this same work email to set a password.</p>' : ''}</div></div>`;
+  } else if (tab === 'docs') body = await docsCard(e.id);
+  else if (tab === 'salary') {
+    const s = (await must(S.sb.from('salary_structures').select('*').eq('employee_id', e.id).maybeSingle())) || {};
+    const n = (k, l) => fld(k, l, 'number', { step: '0.01', min: 0 }, s[k] ?? 0);
+    body = `<div class="card"><div class="hd"><h2>Monthly salary structure</h2></div><div class="bd">
+      <div class="note">These amounts are copied into each new payslip. Enter monthly amounts. Loss of pay and bonus are added when you generate payroll.</div>
+      <form data-form="salarySave" class="form"><input type="hidden" name="employee_id" value="${esc(e.id)}">
+      <h3>Earnings (monthly)</h3>${n('basic', 'Basic')}${n('hra', 'HRA')}${n('special_allowance', 'Special allowance')}${n('other_allowance', 'Other allowance')}
+      <h3>Standard deductions (monthly)</h3>${n('pf', 'Provident fund (PF)')}${n('prof_tax', 'Professional tax')}${n('tds', 'TDS (income tax)')}${n('other_deduction', 'Other deduction')}
+      <div class="full"><button class="btn pri" type="submit">Save salary</button></div></form></div></div>`;
+  } else if (tab === 'slips') {
+    const sl = await must(S.sb.from('payslips').select('*').eq('employee_id', e.id).order('month', { ascending: false }));
+    body = `<div class="card pad0"><div class="hd"><h2>Payslips</h2></div><div class="bd scroll">${slipTable(sl, true)}</div></div>`;
+  }
+  return { title: isNew ? 'Add employee' : e.full_name, html: `${isNew ? '' : `<p style="margin-top:0"><a href="#/employees">← All employees</a> · <span class="muted">${esc(e.emp_code)} · ${esc(e.designation || '')} ${e.status === 'exited' ? '· <span class="tag">Exited</span>' : ''}</span></p>`}${tabs}${body}` };
+} };
+ACT.empTab = t => { S.ui.empTab = t.dataset.t; render(); };
+FORM.empSave = async f => {
+  const d = formObj(f), id = d._id, row = {};
+  EMP_COLS.forEach(c => { row[c] = nn(d[c] ?? ''); });
+  if (!row.emp_code || !row.full_name || !row.work_email) throw new Error('Employee ID, name and work email are required');
+  row.work_email = row.work_email.toLowerCase();
+  if (row.pan) { row.pan = row.pan.toUpperCase(); if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(row.pan)) throw new Error('PAN looks wrong (example: ABCDE1234F)'); }
+  if (row.bank_ifsc) { row.bank_ifsc = row.bank_ifsc.toUpperCase(); if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(row.bank_ifsc)) throw new Error('IFSC looks wrong (example: SBIN0001234)'); }
+  if (row.manager_id && row.manager_id === id) throw new Error('A person cannot report to themselves');
+  if (id && id === S.me.id && (row.role !== 'admin' || row.status !== 'active')) throw new Error('You cannot remove your own admin access or deactivate yourself');
+  if (row.status === 'exited' && !row.exit_date) row.exit_date = todayISO();
+  let newId = id;
+  if (id) await must(S.sb.from('employees').update(row).eq('id', id));
+  else { const r = await must(S.sb.from('employees').insert(row).select('id').single()); newId = r.id; }
+  await reloadDir(); if (id === S.me.id) await loadMe();
+  toast('Saved', 'ok'); S.ui.empTab = 'profile'; location.hash = '#/employee/' + newId; render();
+};
+FORM.salarySave = async f => {
+  const d = formObj(f), row = { employee_id: d.employee_id };
+  ['basic', 'hra', 'special_allowance', 'other_allowance', 'pf', 'prof_tax', 'tds', 'other_deduction'].forEach(k => { row[k] = Math.max(0, num(d[k])); });
+  await must(S.sb.from('salary_structures').upsert(row, { onConflict: 'employee_id' })); toast('Salary saved', 'ok'); render();
+};
+
+/* ===== PAYSLIPS ===== */
+function slipTable(rows, admin) {
+  if (!rows.length) return '<div class="empty">No payslips yet.</div>';
+  return `<table><tr><th>Month</th><th class="num">Gross</th><th class="num">Deductions</th><th class="num">Net pay</th>${admin ? '<th>Status</th>' : ''}<th></th></tr>${rows.map(r => `<tr>
+    <td><b>${monthLabel(r.month)}</b></td><td class="num">${inr(r.gross)}</td><td class="num">${inr(r.total_deductions)}</td><td class="num"><b>${inr(r.net_pay)}</b></td>
+    ${admin ? `<td><span class="tag ${r.status === 'published' ? 'ok' : 'warn'}">${r.status === 'published' ? 'Published' : 'Draft'}</span></td>` : ''}
+    <td class="num"><button class="btn sm" data-act="slipPdf" data-id="${esc(r.id)}">Download PDF</button></td></tr>`).join('')}</table>`;
+}
+PAGES.payslips = { title: 'My payslips', fn: async () => {
+  const rows = await must(S.sb.from('payslips').select('*').eq('employee_id', S.me.id).eq('status', 'published').order('month', { ascending: false }));
+  return { html: `<div class="card pad0"><div class="hd"><h2>Your payslips</h2></div><div class="bd scroll">${slipTable(rows, false)}</div></div>` };
+} };
+ACT.slipPdf = async t => {
+  if (!window.jspdf) throw new Error('PDF library did not load. Check your internet connection.');
+  const s = await must(S.sb.from('payslips').select('*').eq('id', t.dataset.id).single());
+  const e = s.employee_id === S.me.id ? S.me : await must(S.sb.from('employees').select('*').eq('id', s.employee_id).single());
+  makePayslipPdf(s, e).save(`Payslip_${e.emp_code}_${s.month.slice(0, 7)}.pdf`);
+};
+function makePayslipPdf(s, e) {
+  const { jsPDF } = window.jspdf, doc = new jsPDF({ unit: 'mm', format: 'a4' }), st = S.st, W = 210, M = 15, rs = n => 'Rs. ' + Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  let y = 15;
+  if (st.logo_data) { try { doc.addImage(st.logo_data, /image\/png/.test(st.logo_data) ? 'PNG' : 'JPEG', M, y, 22, 22); } catch (_) { } }
+  else { doc.setDrawColor(150); doc.setLineDashPattern([1.5, 1.5], 0); doc.rect(M, y, 22, 22); doc.setLineDashPattern([], 0); doc.setFontSize(8); doc.setTextColor(140); doc.text('LOGO', M + 11, y + 12.5, { align: 'center' }); }
+  doc.setTextColor(20); doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.text(st.company_name || '', M + 27, y + 7);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(90);
+  doc.text(doc.splitTextToSize([st.company_address, st.company_email, st.company_phone].filter(Boolean).join(' | '), W - 2 * M - 27), M + 27, y + 13);
+  y += 28; doc.setDrawColor(30, 79, 163); doc.setLineWidth(.6); doc.line(M, y, W - M, y);
+  y += 8; doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.setTextColor(20); doc.text('Payslip for ' + monthLabel(s.month), W / 2, y, { align: 'center' });
+  y += 8; const paid = s.working_days - s.lop_days;
+  const L = [['Employee name', e.full_name], ['Employee ID', e.emp_code], ['Designation', e.designation || '-'], ['Department', e.department || '-'], ['Date of joining', fdate(e.joining_date)]];
+  const R = [['PAN', e.pan || '-'], ['UAN', e.uan || '-'], ['Bank account', mask(e.bank_account_no)], ['Paid days', `${paid} of ${s.working_days}`], ['Loss of pay days', String(s.lop_days)]];
+  doc.setFontSize(9);
+  L.forEach(([k, v], i) => { doc.setFont('helvetica', 'normal'); doc.setTextColor(110); doc.text(k, M, y + i * 6); doc.setFont('helvetica', 'bold'); doc.setTextColor(20); doc.text(String(v), M + 32, y + i * 6); });
+  R.forEach(([k, v], i) => { doc.setFont('helvetica', 'normal'); doc.setTextColor(110); doc.text(k, 112, y + i * 6); doc.setFont('helvetica', 'bold'); doc.setTextColor(20); doc.text(String(v), 112 + 30, y + i * 6); });
+  y += 36;
+  const earn = [['Basic', s.basic], ['HRA', s.hra], ['Special allowance', s.special_allowance], ['Other allowance', s.other_allowance], ['Bonus', s.bonus]].filter(r => r[1] > 0 || r[0] === 'Basic');
+  const ded = [['Provident fund', s.pf], ['Professional tax', s.prof_tax], ['TDS', s.tds], ['Other deduction', s.other_deduction], ['Loss of pay', s.lop_amount]].filter(r => r[1] > 0);
+  const half = (W - 2 * M) / 2, hx = M + half, rows = Math.max(earn.length, ded.length, 1);
+  doc.setFillColor(234, 240, 250); doc.rect(M, y, W - 2 * M, 8, 'F'); doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.setTextColor(30, 79, 163);
+  doc.text('EARNINGS', M + 3, y + 5.5); doc.text('AMOUNT', M + half - 3, y + 5.5, { align: 'right' }); doc.text('DEDUCTIONS', hx + 3, y + 5.5); doc.text('AMOUNT', W - M - 3, y + 5.5, { align: 'right' });
+  y += 8; doc.setFont('helvetica', 'normal'); doc.setTextColor(30); doc.setFontSize(10);
+  for (let i = 0; i < rows; i++) {
+    const yy = y + 6.5 + i * 7;
+    if (earn[i]) { doc.text(earn[i][0], M + 3, yy); doc.text(rs(earn[i][1]), M + half - 3, yy, { align: 'right' }); }
+    if (ded[i]) { doc.text(ded[i][0], hx + 3, yy); doc.text(rs(ded[i][1]), W - M - 3, yy, { align: 'right' }); }
+  }
+  y += rows * 7 + 3; doc.setDrawColor(200); doc.setLineWidth(.2); doc.line(M, y, W - M, y);
+  doc.setFont('helvetica', 'bold'); doc.text('Gross earnings', M + 3, y + 6); doc.text(rs(s.gross), M + half - 3, y + 6, { align: 'right' }); doc.text('Total deductions', hx + 3, y + 6); doc.text(rs(s.total_deductions), W - M - 3, y + 6, { align: 'right' });
+  doc.rect(M, y - rows * 7 - 11, W - 2 * M, rows * 7 + 11 + 9); doc.line(hx, y - rows * 7 - 11, hx, y + 9);
+  y += 18; doc.setFillColor(30, 79, 163); doc.rect(M, y, W - 2 * M, 14, 'F'); doc.setTextColor(255); doc.setFontSize(11); doc.text('NET PAY', M + 4, y + 9); doc.setFontSize(14); doc.text(rs(s.net_pay), W - M - 4, y + 9.3, { align: 'right' });
+  y += 21; doc.setTextColor(60); doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.text(doc.splitTextToSize('Amount in words: Rupees ' + words(s.net_pay) + ' only', W - 2 * M), M, y);
+  if (s.remarks) { y += 8; doc.text(doc.splitTextToSize('Remarks: ' + s.remarks, W - 2 * M), M, y); }
+  doc.setFontSize(8.5); doc.setTextColor(130); doc.text(doc.splitTextToSize(st.payslip_footer || '', W - 2 * M), W / 2, 285, { align: 'center' });
+  return doc;
+}
+
+/* ===== PAYROLL (admin) ===== */
+PAGES.payroll = { title: 'Payroll', admin: 1, fn: async () => {
+  const ym = S.ui.payMonth || prevMonth(); S.ui.payMonth = ym; const ms = ym + '-01', ne = nextMonthStart(ym);
+  const unpaid = S.lt.filter(t => !t.is_paid).map(t => t.id);
+  const [emps, sal, slips, att, lv] = await Promise.all([
+    must(S.sb.from('employees').select('id,emp_code,full_name,designation').eq('status', 'active').order('emp_code')),
+    must(S.sb.from('salary_structures').select('*')), must(S.sb.from('payslips').select('*').eq('month', ms)),
+    must(S.sb.from('attendance').select('employee_id,status').gte('work_date', ms).lt('work_date', ne).in('status', ['absent', 'half_day'])),
+    must(S.sb.from('leave_requests').select('employee_id,days,leave_type_id').eq('status', 'approved').gte('from_date', ms).lt('from_date', ne))]);
+  const salBy = Object.fromEntries(sal.map(s => [s.employee_id, s])), slipBy = Object.fromEntries(slips.map(s => [s.employee_id, s]));
+  const wd = slips[0]?.working_days || S.st.working_days_per_month;
+  const lopAuto = id => att.filter(a => a.employee_id === id).reduce((n, a) => n + (a.status === 'absent' ? 1 : .5), 0) + lv.filter(l => l.employee_id === id && unpaid.includes(l.leave_type_id)).reduce((n, l) => n + num(l.days), 0);
+  const published = slips.filter(s => s.status === 'published').length, drafts = slips.length - published;
+  return { html: `<div class="card"><div class="hd"><h2>1. Choose month and prepare payslips</h2></div><div class="bd">
+    <div class="row" style="margin-bottom:12px"><label class="f"><span>Month</span><input type="month" id="payMonth" value="${ym}" data-chg="payMonth" style="width:180px"></label>
+      <label class="f"><span>Working days in month</span><input type="number" id="payWd" value="${wd}" min="1" max="31" step="0.5" style="width:150px"></label></div>
+    <div class="note small">Loss-of-pay days are pre-filled from attendance (absent days, half days) and approved unpaid leave. Change any number before generating. Published payslips are locked; unpublish one to change it.</div>
+    <div class="scroll"><table id="payTbl"><tr><th>ID</th><th>Employee</th><th class="num">Monthly gross</th><th>LOP days</th><th>Bonus (₹)</th><th>Payslip</th></tr>
+    ${emps.map(e => { const s = salBy[e.id], p = slipBy[e.id], locked = p?.status === 'published', g = s ? num(s.basic) + num(s.hra) + num(s.special_allowance) + num(s.other_allowance) : 0;
+      return `<tr data-emp="${e.id}"><td>${esc(e.emp_code)}</td><td><b>${esc(e.full_name)}</b><div class="muted small">${esc(e.designation || '')}</div></td>
+      <td class="num">${s ? inr(g) : '<a href="#" data-act="goSalary" data-id="' + e.id + '" class="tag warn">Set salary</a>'}</td>
+      <td><input class="sm" type="number" name="lop" min="0" step="0.5" value="${p ? p.lop_days : lopAuto(e.id)}" ${!s || locked ? 'disabled' : ''}></td>
+      <td><input class="sm" type="number" name="bonus" min="0" step="0.01" value="${p ? p.bonus : 0}" ${!s || locked ? 'disabled' : ''}></td>
+      <td>${!s ? '<span class="muted">—</span>' : locked ? '<span class="tag ok">Published</span>' : p ? '<span class="tag warn">Draft</span>' : '<span class="tag">Not generated</span>'}</td></tr>`; }).join('')}</table></div>
+    <div style="margin-top:14px"><button class="btn pri" data-act="payGenerate">Generate / refresh draft payslips</button></div></div></div>
+  <div class="card pad0"><div class="hd"><h2>2. Review and publish — ${monthLabel(ms)}</h2><span class="sp"></span>
+    ${drafts ? `<button class="btn ok" data-act="payPublishAll">Publish all ${drafts} draft${drafts > 1 ? 's' : ''}</button>` : ''}${slips.length ? '<button class="btn" data-act="payCsv">Export CSV</button>' : ''}</div><div class="bd scroll">
+    ${slips.length ? `<table><tr><th>Employee</th><th class="num">Gross</th><th class="num">LOP</th><th class="num">Deductions</th><th class="num">Net pay</th><th>Status</th><th></th></tr>${slips.map(s => `<tr>
+      <td><b>${esc(nameOf(s.employee_id))}</b><div class="muted small">${esc(codeOf(s.employee_id))}</div></td><td class="num">${inr(s.gross)}</td><td class="num">${inr(s.lop_amount)}</td><td class="num">${inr(s.total_deductions)}</td><td class="num"><b>${inr(s.net_pay)}</b></td>
+      <td><span class="tag ${s.status === 'published' ? 'ok' : 'warn'}">${s.status === 'published' ? 'Published' : 'Draft'}</span></td>
+      <td class="num"><button class="btn sm" data-act="slipPdf" data-id="${s.id}">PDF</button>
+      ${s.status === 'draft' ? ` <button class="btn sm ok" data-act="slipStatus" data-id="${s.id}" data-s="published">Publish</button> <button class="btn sm bad" data-act="slipDel" data-id="${s.id}">Delete</button>` : ` <button class="btn sm" data-act="slipStatus" data-id="${s.id}" data-s="draft">Unpublish</button>`}</td></tr>`).join('')}</table>` : '<div class="empty">No payslips for this month yet. Use step 1 above.</div>'}</div></div>`, after: () => { S.ui.paySlips = slips; } };
+} };
+CHG.payMonth = t => { S.ui.payMonth = t.value || prevMonth(); render(); };
+ACT.payGenerate = async () => {
+  const ym = S.ui.payMonth, ms = ym + '-01', wd = num($('#payWd').value);
+  if (wd <= 0) throw new Error('Enter the working days for the month');
+  const [sal, existing] = await Promise.all([must(S.sb.from('salary_structures').select('*')), must(S.sb.from('payslips').select('employee_id,status').eq('month', ms))]);
+  const salBy = Object.fromEntries(sal.map(s => [s.employee_id, s])), lock = new Set(existing.filter(p => p.status === 'published').map(p => p.employee_id)), rows = [];
+  $$('#payTbl tr[data-emp]').forEach(tr => {
+    const id = tr.dataset.emp, s = salBy[id]; if (!s || lock.has(id)) return;
+    const lop = Math.min(wd, Math.max(0, num($('[name=lop]', tr).value))), bonus = Math.max(0, num($('[name=bonus]', tr).value));
+    const fixed = num(s.basic) + num(s.hra) + num(s.special_allowance) + num(s.other_allowance);
+    rows.push({ employee_id: id, month: ms, working_days: wd, lop_days: lop, basic: s.basic, hra: s.hra, special_allowance: s.special_allowance, other_allowance: s.other_allowance, bonus,
+      pf: s.pf, prof_tax: s.prof_tax, tds: s.tds, other_deduction: s.other_deduction, lop_amount: r2(fixed / wd * lop), status: 'draft', created_by: S.me.id });
+  });
+  if (!rows.length) throw new Error('Nothing to generate. Set salaries first, or all payslips for this month are already published.');
+  await must(S.sb.from('payslips').upsert(rows, { onConflict: 'employee_id,month' })); toast(`${rows.length} draft payslip(s) ready`, 'ok'); render();
+};
+ACT.slipStatus = async t => { await must(S.sb.from('payslips').update({ status: t.dataset.s }).eq('id', t.dataset.id)); toast(t.dataset.s === 'published' ? 'Published. The employee can now see it.' : 'Moved back to draft', 'ok'); render(); };
+ACT.slipDel = async t => { if (!confirm('Delete this draft payslip?')) return; await must(S.sb.from('payslips').delete().eq('id', t.dataset.id).eq('status', 'draft')); render(); };
+ACT.payPublishAll = async () => {
+  if (!confirm('Publish all draft payslips for this month? Employees will be able to see them.')) return;
+  await must(S.sb.from('payslips').update({ status: 'published' }).eq('month', S.ui.payMonth + '-01').eq('status', 'draft')); toast('All payslips published', 'ok'); render();
+};
+ACT.payCsv = () => {
+  const r = S.ui.paySlips || []; const h = ['Emp ID', 'Name', 'Month', 'Working days', 'LOP days', 'Basic', 'HRA', 'Special', 'Other', 'Bonus', 'Gross', 'PF', 'Prof tax', 'TDS', 'Other ded', 'LOP amount', 'Total deductions', 'Net pay', 'Status'];
+  download(`payroll-${S.ui.payMonth}.csv`, csv([h, ...r.map(s => [codeOf(s.employee_id), nameOf(s.employee_id), s.month.slice(0, 7), s.working_days, s.lop_days, s.basic, s.hra, s.special_allowance, s.other_allowance, s.bonus, s.gross, s.pf, s.prof_tax, s.tds, s.other_deduction, s.lop_amount, s.total_deductions, s.net_pay, s.status])]));
+};
+
+ACT.goSalary = t => { S.ui.empTab = 'salary'; location.hash = '#/employee/' + t.dataset.id; };
+
+/* ===== LEAVE ===== */
+function leaveYear() {
+  const m0 = S.st.leave_year_start_month || 4, t = new Date(), y = (t.getMonth() + 1 >= m0) ? t.getFullYear() : t.getFullYear() - 1;
+  return { from: iso(new Date(y, m0 - 1, 1)), to: iso(new Date(y + 1, m0 - 1, 0)) };
+}
+function countDays(from, to, half) {
+  if (half) return 0.5;
+  const hs = new Set(S.hol.map(h => h.date)), off = S.st.weekly_off || [0]; let n = 0;
+  for (let d = pd(from); d <= pd(to); d.setDate(d.getDate() + 1)) if (!off.includes(d.getDay()) && !hs.has(iso(d))) n++;
+  return n;
+}
+const LSTAT = { pending: ['Pending', 'warn'], approved: ['Approved', 'ok'], rejected: ['Rejected', 'bad'], cancelled: ['Cancelled', ''] };
+const lstat = s => `<span class="tag ${LSTAT[s][1]}">${LSTAT[s][0]}</span>`;
+const ltName = id => S.lt.find(t => t.id === id)?.name || '—';
+const range = r => r.from_date === r.to_date ? fdate(r.from_date) : `${fdate(r.from_date)} → ${fdate(r.to_date)}`;
+
+PAGES.leave = { title: 'Leave', fn: async () => {
+  const tab = (isMgr() && S.ui.leaveTab) || 'mine', ly = leaveYear();
+  const tabs = isMgr() ? `<div class="tabs">${[['mine', 'My leave'], ['team', isAdmin() ? 'Approvals (all staff)' : 'Team approvals']].map(([k, l]) => `<a class="${k === tab ? 'on' : ''}" data-act="leaveTab" data-t="${k}">${l}</a>`).join('')}</div>` : '';
+  if (tab === 'team') {
+    const all = await must(S.sb.from('leave_requests').select('*').order('created_at', { ascending: false }).limit(200));
+    const rows = all.filter(r => isAdmin() || r.employee_id !== S.me.id), pend = rows.filter(r => r.status === 'pending');
+    const tbl = list => list.length ? `<table><tr><th>Employee</th><th>Type</th><th>Dates</th><th class="num">Days</th><th>Reason</th><th>Status</th><th></th></tr>${list.map(r => `<tr>
+      <td><b>${esc(nameOf(r.employee_id))}</b></td><td>${esc(ltName(r.leave_type_id))}</td><td>${range(r)}</td><td class="num">${r.days}</td><td>${esc(r.reason || '—')}${r.decision_note ? `<div class="muted small">Note: ${esc(r.decision_note)}</div>` : ''}</td><td>${lstat(r.status)}</td>
+      <td class="num">${r.status === 'pending' && (isAdmin() || r.employee_id !== S.me.id) ? `<button class="btn sm ok" data-act="decideOpen" data-id="${r.id}" data-s="approved">Approve</button> <button class="btn sm bad" data-act="decideOpen" data-id="${r.id}" data-s="rejected">Reject</button>` : ''}</td></tr>`).join('')}</table>` : '<div class="empty">Nothing here.</div>';
+    return { html: tabs + `<div class="card pad0"><div class="hd"><h2>Waiting for a decision (${pend.length})</h2></div><div class="bd scroll">${tbl(pend)}</div></div>
+      <div class="card pad0"><div class="hd"><h2>Recent requests</h2></div><div class="bd scroll">${tbl(rows.filter(r => r.status !== 'pending').slice(0, 30))}</div></div>` };
+  }
+  const mine = await must(S.sb.from('leave_requests').select('*').eq('employee_id', S.me.id).order('from_date', { ascending: false }));
+  const inYear = mine.filter(r => r.from_date >= ly.from && r.from_date <= ly.to);
+  const bal = S.lt.map(t => {
+    const used = inYear.filter(r => r.leave_type_id === t.id && r.status === 'approved').reduce((n, r) => n + num(r.days), 0);
+    const pend = inYear.filter(r => r.leave_type_id === t.id && r.status === 'pending').reduce((n, r) => n + num(r.days), 0);
+    return { t, used, pend, left: t.annual_quota == null ? null : t.annual_quota - used - pend };
+  });
+  return { html: tabs + `<div class="grid g3" style="margin-bottom:16px">${bal.map(b => `<div class="card stat"><div class="k">${esc(b.t.name)}</div>
+      <div class="v">${b.left == null ? b.used + ' <span class="muted small">taken</span>' : b.left + ' <span class="muted small">left of ' + b.t.annual_quota + '</span>'}</div>
+      ${b.t.annual_quota != null ? `<div class="bar" style="margin:8px 0 4px"><i style="width:${Math.min(100, (b.used + b.pend) / b.t.annual_quota * 100)}%"></i></div>` : ''}
+      <div class="muted small">${b.used} used${b.pend ? `, ${b.pend} pending` : ''} · year ${fdate(ly.from)} to ${fdate(ly.to)}</div></div>`).join('')}</div>
+    <div class="card"><div class="hd"><h2>Apply for leave</h2></div><div class="bd"><form data-form="leaveApply" class="form">
+      ${fld('leave_type_id', 'Leave type', 'select', { opts: S.lt.map(t => [t.id, t.name]) })}${fld('from_date', 'From', 'date', { req: 1 }, todayISO())}${fld('to_date', 'To', 'date', { req: 1 }, todayISO())}
+      <label class="f"><span>&nbsp;</span><label style="display:flex;gap:8px;align-items:center;padding:8px 0"><input type="checkbox" name="half_day" value="1"> Half day (single date only)</label></label>
+      ${fld('reason', 'Reason', 'text', { full: 1 })}<div class="full"><button class="btn pri" type="submit">Submit request</button> <span class="muted small">Weekly offs and holidays are not counted.</span></div></form></div></div>
+    <div class="card pad0"><div class="hd"><h2>My requests</h2></div><div class="bd scroll">${mine.length ? `<table><tr><th>Type</th><th>Dates</th><th class="num">Days</th><th>Reason</th><th>Status</th><th></th></tr>${mine.map(r => `<tr>
+      <td>${esc(ltName(r.leave_type_id))}</td><td>${range(r)}</td><td class="num">${r.days}</td><td>${esc(r.reason || '—')}${r.decision_note ? `<div class="muted small">Note: ${esc(r.decision_note)}</div>` : ''}</td><td>${lstat(r.status)}</td>
+      <td class="num">${r.status === 'pending' ? `<button class="btn sm" data-act="leaveCancel" data-id="${r.id}">Cancel</button>` : ''}</td></tr>`).join('')}</table>` : '<div class="empty">No leave requests yet.</div>'}</div></div>` };
+} };
+ACT.leaveTab = t => { S.ui.leaveTab = t.dataset.t; render(); };
+FORM.leaveApply = async f => {
+  const d = formObj(f), half = d.half_day === '1';
+  if (d.to_date < d.from_date) throw new Error('"To" date cannot be before "From" date');
+  if (half && d.from_date !== d.to_date) throw new Error('Half day is only for a single date');
+  const days = countDays(d.from_date, d.to_date, half);
+  if (days <= 0) throw new Error('The selected dates are weekly offs or holidays, so no leave is needed');
+  const mine = await must(S.sb.from('leave_requests').select('*').eq('employee_id', S.me.id).in('status', ['pending', 'approved']));
+  if (mine.some(r => r.from_date <= d.to_date && r.to_date >= d.from_date)) throw new Error('You already have a leave request on these dates');
+  const t = S.lt.find(x => x.id === d.leave_type_id);
+  if (t.annual_quota != null) {
+    const ly = leaveYear(), used = mine.filter(r => r.leave_type_id === t.id && r.from_date >= ly.from && r.from_date <= ly.to).reduce((n, r) => n + num(r.days), 0);
+    if (used + days > t.annual_quota) throw new Error(`Not enough ${t.name} left (${t.annual_quota - used} day(s)). Choose Loss of Pay or a shorter period.`);
+  }
+  await must(S.sb.from('leave_requests').insert({ employee_id: S.me.id, leave_type_id: t.id, from_date: d.from_date, to_date: d.to_date, days, half_day: half, reason: nn(d.reason), status: 'pending' }));
+  toast(`Leave request for ${days} day(s) sent`, 'ok'); render();
+};
+ACT.leaveCancel = async t => { if (!confirm('Cancel this request?')) return; await must(S.sb.rpc('cancel_leave', { p_id: t.dataset.id })); render(); };
+ACT.decideOpen = t => modal(t.dataset.s === 'approved' ? 'Approve leave' : 'Reject leave', `<form data-form="leaveDecide"><input type="hidden" name="id" value="${esc(t.dataset.id)}"><input type="hidden" name="s" value="${esc(t.dataset.s)}">
+  ${fld('note', 'Note for the employee (optional)', 'textarea', { full: 1 })}<div class="row" style="margin-top:14px;justify-content:flex-end"><button class="btn" type="button" data-act="closeModal">Cancel</button><button class="btn ${t.dataset.s === 'approved' ? 'ok' : 'bad'}" type="submit">${t.dataset.s === 'approved' ? 'Approve' : 'Reject'}</button></div></form>`);
+FORM.leaveDecide = async f => { const d = formObj(f); await must(S.sb.rpc('decide_leave', { p_id: d.id, p_status: d.s, p_note: nn(d.note) })); closeModal(); toast('Decision saved', 'ok'); render(); };
+
+/* ===== ATTENDANCE ===== */
+PAGES.attendance = { title: 'Attendance', fn: async () => {
+  const tab = (isMgr() && S.ui.attTab) || 'mine';
+  const tabs = isMgr() ? `<div class="tabs">${[['mine', 'My attendance'], ['team', isAdmin() ? 'All staff (edit)' : 'My team']].map(([k, l]) => `<a class="${k === tab ? 'on' : ''}" data-act="attTab" data-t="${k}">${l}</a>`).join('')}</div>` : '';
+  if (tab === 'team') {
+    const day = S.ui.attDay || todayISO(); S.ui.attDay = day;
+    const people = S.dir.filter(e => e.status === 'active' && (isAdmin() || e.manager_id === S.me.id));
+    const rows = await must(S.sb.from('attendance').select('*').eq('work_date', day)), by = Object.fromEntries(rows.map(r => [r.employee_id, r]));
+    const opts = [['', 'Not marked'], ...Object.entries(STATUS).map(([k, v]) => [k, v[0]])];
+    return { html: tabs + `<div class="card pad0"><div class="hd"><h2>Attendance on</h2><input type="date" value="${day}" data-chg="attDay" style="width:170px"><span class="sp"></span>
+      ${isAdmin() ? '<button class="btn pri" data-act="attSave">Save changes</button>' : ''}</div><div class="bd scroll">
+      ${people.length ? `<table id="attTbl"><tr><th>Employee</th><th>Check-in</th><th>Check-out</th><th>Status</th></tr>${people.map(p => { const r = by[p.id]; return `<tr data-emp="${p.id}" data-old="${r?.status || ''}">
+        <td><b>${esc(p.full_name)}</b><div class="muted small">${esc(p.emp_code)}</div></td><td>${ftime(r?.check_in)} ${r?.check_in && isLate(r.check_in) ? '<span class="tag warn">Late</span>' : ''}</td><td>${ftime(r?.check_out)}</td>
+        <td>${isAdmin() ? `<select name="st" style="width:170px">${opts.map(([v, l]) => `<option value="${v}"${(r?.status || '') === v ? ' selected' : ''}>${l}</option>`).join('')}</select>` : r ? statusTag(r.status) : '<span class="muted">Not marked</span>'}</td></tr>`; }).join('')}</table>` : '<div class="empty">No team members yet. Set "Reports to" on employees.</div>'}</div></div>` };
+  }
+  const ym = S.ui.attMonth || todayISO().slice(0, 7); S.ui.attMonth = ym;
+  const rows = await must(S.sb.from('attendance').select('*').eq('employee_id', S.me.id).gte('work_date', ym + '-01').lt('work_date', nextMonthStart(ym)).order('work_date', { ascending: false }));
+  const c = k => rows.filter(r => r.status === k).length, a = rows.find(r => r.work_date === todayISO());
+  return { html: tabs + `<div class="grid g2"><div class="card"><div class="hd"><h2>Today</h2></div><div class="bd">${attendanceToday(a)}</div></div>
+    <div class="card"><div class="hd"><h2>${monthLabel(ym)} summary</h2></div><div class="bd"><div class="grid g4"><div><div class="muted small">Present</div><b style="font-size:22px">${c('present')}</b></div><div><div class="muted small">WFH</div><b style="font-size:22px">${c('wfh')}</b></div><div><div class="muted small">Half day</div><b style="font-size:22px">${c('half_day')}</b></div><div><div class="muted small">Absent</div><b style="font-size:22px">${c('absent')}</b></div></div></div></div></div>
+    <div class="card pad0"><div class="hd"><h2>My records</h2><input type="month" value="${ym}" data-chg="attMonth" style="width:170px"></div><div class="bd scroll">
+    ${rows.length ? `<table><tr><th>Date</th><th>Check-in</th><th>Check-out</th><th>Hours</th><th>Status</th></tr>${rows.map(r => `<tr><td>${fdate(r.work_date)}</td><td>${ftime(r.check_in)} ${r.check_in && isLate(r.check_in) ? '<span class="tag warn">Late</span>' : ''}</td><td>${ftime(r.check_out)}</td>
+      <td>${r.check_in && r.check_out ? ((new Date(r.check_out) - new Date(r.check_in)) / 36e5).toFixed(1) + ' h' : '—'}</td><td>${statusTag(r.status)}</td></tr>`).join('')}</table>` : '<div class="empty">No records this month.</div>'}</div></div>` };
+} };
+ACT.attTab = t => { S.ui.attTab = t.dataset.t; render(); };
+CHG.attDay = t => { S.ui.attDay = t.value || todayISO(); render(); };
+CHG.attMonth = t => { S.ui.attMonth = t.value || todayISO().slice(0, 7); render(); };
+ACT.attSave = async () => {
+  const day = S.ui.attDay, up = [], del = [];
+  $$('#attTbl tr[data-emp]').forEach(tr => { const v = $('[name=st]', tr).value, old = tr.dataset.old; if (v === old) return; if (v) up.push({ employee_id: tr.dataset.emp, work_date: day, status: v }); else del.push(tr.dataset.emp); });
+  if (!up.length && !del.length) { toast('No changes to save'); return; }
+  if (up.length) await must(S.sb.from('attendance').upsert(up, { onConflict: 'employee_id,work_date' }));
+  for (const id of del) await must(S.sb.from('attendance').delete().eq('employee_id', id).eq('work_date', day));
+  toast('Attendance saved', 'ok'); render();
+};
+
+/* ===== HOLIDAYS ===== */
+PAGES.holidays = { title: 'Holidays', fn: async () => {
+  const rows = await must(S.sb.from('holidays').select('*').order('date')); S.hol = rows; const today = todayISO();
+  return { html: `${isAdmin() ? `<div class="card"><div class="hd"><h2>Add a holiday</h2></div><div class="bd"><form data-form="holAdd" class="row">${fld('date', 'Date', 'date', { req: 1 })}${fld('name', 'Holiday name', 'text', { req: 1, ph: 'e.g. Diwali' })}<button class="btn pri" type="submit" style="align-self:flex-end">Add</button></form></div></div>` : ''}
+    <div class="card pad0"><div class="hd"><h2>Company holidays</h2></div><div class="bd scroll">${rows.length ? `<table><tr><th>Date</th><th>Day</th><th>Holiday</th><th></th></tr>${rows.map(h => `<tr style="${h.date < today ? 'opacity:.55' : ''}"><td>${fdate(h.date)}</td><td>${pd(h.date).toLocaleDateString('en-IN', { weekday: 'long' })}</td><td>${esc(h.name)}</td>
+      <td class="num">${isAdmin() ? `<button class="btn sm bad" data-act="holDel" data-id="${h.id}">Delete</button>` : ''}</td></tr>`).join('')}</table>` : '<div class="empty">No holidays added yet.</div>'}</div></div>` };
+} };
+FORM.holAdd = async f => { const d = formObj(f); await must(S.sb.from('holidays').insert({ date: d.date, name: d.name })); toast('Holiday added', 'ok'); render(); };
+ACT.holDel = async t => { if (!confirm('Delete this holiday?')) return; await must(S.sb.from('holidays').delete().eq('id', t.dataset.id)); render(); };
+
+/* ===== SETTINGS (admin) ===== */
+PAGES.settings = { title: 'Settings', admin: 1, fn: async () => {
+  const st = await must(S.sb.from('settings').select('*').eq('id', 1).single()); S.st = st;
+  const lt = await must(S.sb.from('leave_types').select('*').order('name'));
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  return { html: `<div class="card"><div class="hd"><h2>Company logo</h2></div><div class="bd"><div class="row">
+      <div style="width:90px;height:90px;border:1.5px dashed #b9c2d6;border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#fff;color:#8791a8">${st.logo_data ? `<img alt="logo" src="${esc(st.logo_data)}" style="max-width:100%;max-height:100%">` : 'LOGO'}</div>
+      <div><label class="btn" style="cursor:pointer">Upload logo<input type="file" accept="image/png,image/jpeg" data-chg="logo" hidden></label>${st.logo_data ? ' <button class="btn bad" data-act="logoClear">Remove</button>' : ''}
+      <div class="muted small" style="margin-top:6px">PNG or JPG, square works best. Shown on the login page, menu and payslips. Until you upload one, a LOGO placeholder is shown.</div></div></div></div></div>
+  <div class="card"><div class="hd"><h2>Company and payslip details</h2></div><div class="bd"><form data-form="settingsSave" class="form">
+    ${fld('company_name', 'Company name', 'text', { req: 1 }, st.company_name)}${fld('company_email', 'Company email', 'email', {}, st.company_email)}${fld('company_phone', 'Company phone', 'text', {}, st.company_phone)}
+    ${fld('company_address', 'Company address (printed on payslips)', 'textarea', { full: 1 }, st.company_address)}${fld('payslip_footer', 'Payslip footer text', 'textarea', { full: 1 }, st.payslip_footer)}
+    <h3>Working time and leave</h3>
+    ${fld('working_days_per_month', 'Default working days per month', 'number', { min: 1, max: 31, step: '0.5' }, st.working_days_per_month)}
+    ${fld('leave_year_start_month', 'Leave year starts in', 'select', { opts: months.map((m, i) => [i + 1, m]) }, st.leave_year_start_month)}
+    <label class="f"><span>Weekly off days</span><div class="row" style="padding:6px 0">${days.map((d, i) => `<label style="display:flex;gap:4px;align-items:center"><input type="checkbox" name="off" value="${i}"${(st.weekly_off || []).includes(i) ? ' checked' : ''}>${d}</label>`).join('')}</div></label>
+    ${fld('work_start_time', 'Work start time', 'time', {}, (st.work_start_time || '09:30').slice(0, 5))}${fld('late_grace_minutes', 'Late grace (minutes)', 'number', { min: 0, max: 120 }, st.late_grace_minutes)}
+    <div class="full"><button class="btn pri" type="submit">Save settings</button></div></form></div></div>
+  <div class="card pad0"><div class="hd"><h2>Leave types</h2><span class="sp"></span><button class="btn pri" data-act="ltEdit">+ Add leave type</button></div><div class="bd scroll"><table><tr><th>Name</th><th>Days per year</th><th>Paid</th><th>Active</th><th></th></tr>
+    ${lt.map(t => `<tr><td><b>${esc(t.name)}</b></td><td>${t.annual_quota == null ? 'Unlimited' : t.annual_quota}</td><td>${t.is_paid ? 'Paid' : 'Unpaid (counts as LOP)'}</td><td>${t.active ? 'Yes' : 'No'}</td><td class="num"><button class="btn sm" data-act="ltEdit" data-id="${t.id}">Edit</button></td></tr>`).join('')}</table></div></div>
+  <div class="card"><div class="hd"><h2>Backup</h2></div><div class="bd">
+    <p style="margin-top:0">Download a complete copy of all HR data (employees, salary, payslips, leave, attendance, holidays, settings, audit log, and the list of documents) as one file. Keep it somewhere safe, for example Google Drive.</p>
+    <button class="btn pri" data-act="backup">Download full data backup</button>
+    <p class="muted small" style="margin-bottom:0">Uploaded document files are not inside this file. The automatic nightly backup (see the setup guide) copies the database and the document files to Google Drive.</p></div></div>`, after: () => { S.ui.lt = lt; } };
+} };
+FORM.settingsSave = async f => {
+  const d = formObj(f), off = $$('[name=off]:checked', f).map(c => +c.value);
+  await must(S.sb.from('settings').update({ company_name: d.company_name, company_email: nn(d.company_email), company_phone: nn(d.company_phone), company_address: d.company_address || '', payslip_footer: d.payslip_footer || '',
+    working_days_per_month: Math.max(1, Math.round(num(d.working_days_per_month))), leave_year_start_month: +d.leave_year_start_month, weekly_off: off, work_start_time: d.work_start_time || '09:30', late_grace_minutes: Math.max(0, Math.round(num(d.late_grace_minutes))) }).eq('id', 1));
+  await loadBase(); toast('Settings saved', 'ok'); render();
+};
+CHG.logo = async t => {
+  const file = t.files[0]; if (!file) return;
+  if (!/^image\/(png|jpeg)$/.test(file.type)) throw new Error('Please choose a PNG or JPG image');
+  const url = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); });
+  const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('Could not read this image')); i.src = url; });
+  const max = 400, k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+  c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+  await must(S.sb.from('settings').update({ logo_data: c.toDataURL('image/png') }).eq('id', 1)); S.brand = null; await loadBase(); toast('Logo updated', 'ok'); render();
+};
+ACT.logoClear = async () => { await must(S.sb.from('settings').update({ logo_data: null }).eq('id', 1)); S.brand = null; await loadBase(); render(); };
+ACT.ltEdit = t => {
+  const x = t.dataset.id ? (S.ui.lt || []).find(l => l.id === t.dataset.id) : { name: '', annual_quota: 12, is_paid: true, active: true };
+  modal(t.dataset.id ? 'Edit leave type' : 'Add leave type', `<form data-form="ltSave"><input type="hidden" name="id" value="${esc(x.id || '')}">
+    ${fld('name', 'Name', 'text', { req: 1 }, x.name)}<div style="height:10px"></div>${fld('annual_quota', 'Days per year (leave empty for unlimited)', 'number', { min: 0, step: '0.5' }, x.annual_quota ?? '')}
+    <label style="display:flex;gap:8px;margin-top:12px"><input type="checkbox" name="is_paid" value="1"${x.is_paid ? ' checked' : ''}> Paid leave (untick for unpaid, counted as loss of pay)</label>
+    <label style="display:flex;gap:8px;margin-top:8px"><input type="checkbox" name="active" value="1"${x.active ? ' checked' : ''}> Active</label>
+    <div class="row" style="margin-top:14px;justify-content:flex-end"><button class="btn" type="button" data-act="closeModal">Cancel</button><button class="btn pri" type="submit">Save</button></div></form>`);
+};
+FORM.ltSave = async f => {
+  const d = formObj(f), row = { name: d.name, annual_quota: d.annual_quota === '' ? null : num(d.annual_quota), is_paid: d.is_paid === '1', active: d.active === '1' };
+  if (d.id) await must(S.sb.from('leave_types').update(row).eq('id', d.id)); else await must(S.sb.from('leave_types').insert(row));
+  await loadBase(); closeModal(); toast('Saved', 'ok'); render();
+};
+ACT.backup = async () => {
+  const tables = ['settings', 'employees', 'salary_structures', 'payslips', 'documents', 'leave_types', 'leave_requests', 'holidays', 'attendance', 'audit_log'], out = { exported_at: new Date().toISOString(), app: 'hr-portal-phase1', tables: {} };
+  for (const t of tables) {
+    let all = [], from = 0;
+    for (;;) { const { data, error } = await S.sb.from(t).select('*').range(from, from + 999); if (error) throw new Error(`${t}: ${error.message}`); all = all.concat(data); if (data.length < 1000) break; from += 1000; }
+    out.tables[t] = all;
+  }
+  download(`hr-backup-${todayISO()}.json`, JSON.stringify(out, null, 1), 'application/json'); toast('Backup downloaded. Keep it safe: it contains salary and bank details.', 'ok');
+};
+
+/* ===== AUDIT LOG (admin) ===== */
+PAGES.audit = { title: 'Audit log', admin: 1, fn: async () => {
+  const [rows, emps] = await Promise.all([must(S.sb.from('audit_log').select('*').order('at', { ascending: false }).limit(200)), must(S.sb.from('employees').select('id,user_id,full_name'))]);
+  const who = Object.fromEntries(emps.filter(e => e.user_id).map(e => [e.user_id, e.full_name])), nm = Object.fromEntries(emps.map(e => [e.id, e.full_name]));
+  const SKIP = new Set(['updated_at', 'created_at']);
+  const diff = r => { if (r.action === 'INSERT') return 'Created'; if (r.action === 'DELETE') return 'Deleted'; const ks = Object.keys(r.new_data || {}).filter(k => !SKIP.has(k) && JSON.stringify(r.new_data[k]) !== JSON.stringify((r.old_data || {})[k])); return ks.length ? 'Changed: ' + ks.join(', ') : 'No visible change'; };
+  const label = { employees: 'Employee', salary_structures: 'Salary', payslips: 'Payslip', settings: 'Settings', documents: 'Document' };
+  return { html: `<div class="card pad0"><div class="hd"><h2>Last ${rows.length} changes</h2><span class="muted small">Who changed profile, salary, payslip, settings and document records</span></div><div class="bd scroll">
+    ${rows.length ? `<table><tr><th>When</th><th>Who</th><th>What</th><th>Record</th><th>Detail</th></tr>${rows.map(r => { const d = r.new_data || r.old_data || {};
+      return `<tr><td>${fdate(r.at)} ${ftime(r.at)}</td><td>${esc(who[r.actor_id] || (r.actor_id ? 'Unknown user' : 'System'))}</td><td>${label[r.table_name] || r.table_name}</td><td>${esc(nm[d.employee_id] || nm[r.record_id] || d.full_name || '')}</td><td class="muted small">${esc(diff(r))}</td></tr>`; }).join('')}</table>` : '<div class="empty">No changes recorded yet.</div>'}</div></div>` };
+} };
+
+boot();
+
+</script>
+</body>
+</html>
