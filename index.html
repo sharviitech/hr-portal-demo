@@ -135,8 +135,8 @@ input.sm{padding:4px 8px;width:90px}
 <!-- ============ SETUP: paste your Supabase values here (Project Settings -> API) ============ -->
 <script>
 const CONFIG = {
-  SUPABASE_URL: 'https://bqiluqvqbgmbsutegucz.supabase.co',
-  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJxaWx1cXZxYmdtYnN1dGVndWN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM0NDg2MjksImV4cCI6MjEwOTAyNDYyOX0.rOocnHot3EbMjY8z5T6OFmp6LLvulXGD3OMvDlrVJ58'   // the public "anon" key ONLY. Never paste the service_role key here.
+  SUPABASE_URL: 'https://YOUR-PROJECT-ID.supabase.co',
+  SUPABASE_ANON_KEY: 'YOUR-ANON-PUBLIC-KEY'   // the public "anon" key ONLY. Never paste the service_role key here.
 };
 </script>
 <!-- ======================================================================================== -->
@@ -267,7 +267,12 @@ async function afterLogin() { await loadMe(); S.ui.authMode = 'login'; location.
 FORM.login = async f => {
   const d = formObj(f);
   const { error } = await S.sb.auth.signInWithPassword({ email: d.email, password: d.password });
-  if (error) throw new Error('Wrong email or password, or the email is not confirmed yet.');
+  if (error) {
+    const m = error.message || '';
+    if (/not confirmed/i.test(m)) throw new Error('This email is not confirmed yet. In Supabase open Authentication > Users and confirm the user, or turn "Confirm email" off while demoing.');
+    if (/invalid login/i.test(m)) throw new Error('Wrong email or password. First time here? Click "Activate account" first.');
+    throw new Error(m);   // anything else (for example an invalid API key) is shown as it is
+  }
   await afterLogin();
 };
 FORM.activate = async f => {
@@ -275,7 +280,13 @@ FORM.activate = async f => {
   if (d.password.length < 8) throw new Error('Password must be at least 8 characters');
   if (d.password !== d.password2) throw new Error('Passwords do not match');
   const { data, error } = await S.sb.auth.signUp({ email: d.email, password: d.password, options: { emailRedirectTo: location.origin + location.pathname } });
-  if (error) throw new Error('Could not activate. Check that HR has added this exact work email, or try logging in if you already activated.');
+  if (error) {
+    const m = error.message || '';
+    if (/already registered|already been registered/i.test(m)) throw new Error('This email is already activated. Go back and log in, or use "Forgot password?".');
+    if (/signups? (not allowed|are disabled|is disabled)|signup is disabled/i.test(m)) throw new Error('Sign-ups are switched off in Supabase. Turn on Authentication > Sign In / Providers > "Allow new users to sign up".');
+    if (/database error saving new user|not registered/i.test(m)) throw new Error('This email is not in the Employees list yet (or the database setup did not finish). Ask HR to add exactly this work email, then try again.');
+    throw new Error(m);
+  }
   if (data.session) { toast('Account activated', 'ok'); await afterLogin(); }
   else { toast('Check your email and click the confirmation link, then log in.', 'ok'); S.ui.authMode = 'login'; render(); }
 };
